@@ -36,13 +36,15 @@ class TestRunner {
 
   async _runTest(testPath, projectConfig, resolver) {
     if (this._globalConfig.updateSnapshot === 'all') {
-      await execa('py.test', ['-vv', '--snapshot-update'])
+      const { stdout, stderr } = await execa('py.test', ['-vv', '--snapshot-update'])
+      console.error(stderr)
+      console.log(stdout)
     }
     const outfile = tempy.file({ extension: 'jest-pytest.json' })
     if (process.env['JEST_PYTEST_DEBUG_IPC']) {
       console.log('file:', outfile)
     }
-    const res = await execa('py.test', [
+    const { stdout, stderr } = await execa('py.test', [
       '-vv',
       '--jest-report',
       `--jest-report-file=${outfile}`,
@@ -53,7 +55,8 @@ class TestRunner {
       }
       return err
     }) // all communication happen through files, we swallow exit(1)'s.
-
+    console.log(stdout)
+    console.error(stderr)
     try {
       const result = JSON.parse(await fs.readFile(outfile))
       await removeOutput(outfile)
